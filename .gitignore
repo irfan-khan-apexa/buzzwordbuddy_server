@@ -1,0 +1,21 @@
+# Node modules
+node_modules/
+
+# Env and credentials
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+
+# Database files (optional)
+*.sqlite
+*.db
+
+# Build / output
+dist/
+build/
