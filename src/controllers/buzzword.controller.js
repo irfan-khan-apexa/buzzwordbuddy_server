@@ -1,5 +1,22 @@
 const { Buzzword, UserSentence, sequelize } = require('../models');
 const { Op } = require('sequelize');
+require('dotenv').config()
+// const OpenAI = require('openai');
+
+
+
+const { CohereClient } = require('cohere-ai');
+require('dotenv').config();
+
+
+const cohere = new CohereClient({
+    token: process.env.COHERE_API_KEY,
+});
+
+
+
+
+
 
 exports.getDailyBuzzwords = async (req, res) => {
     try {
