@@ -1,5 +1,6 @@
 const { Buzzword, UserSentence, sequelize } = require('../models');
 const { Op } = require('sequelize');
+<<<<<<< HEAD
 
 exports.getDailyBuzzwords = async (req, res) => {
     try {
@@ -13,10 +14,83 @@ exports.getDailyBuzzwords = async (req, res) => {
         res.json(buzzwords);
     } catch (error) {
         console.error(error);
+=======
+require('dotenv').config()
+// const OpenAI = require('openai');
+
+// const openai = new OpenAI({
+//     demoapiKey: "ghfj-proj-e-
+// });
+
+
+const { CohereClient } = require('cohere-ai');
+require('dotenv').config();
+
+
+const cohere = new CohereClient({
+    token: process.env.COHERE_API_KEY,
+});
+
+exports.getDailyBuzzwords = async (req, res) => {
+    const today = new Date().toISOString().split('T')[0];
+
+    try {
+        // Check if today's buzzwords are already saved
+        const [existing] = await sequelize.query(
+            'SELECT * FROM daily_buzzwords WHERE date = ?',
+            {
+                replacements: [today],
+                type: sequelize.QueryTypes.SELECT,
+            }
+        );
+
+        if (existing) {
+            const ids = JSON.parse(existing.buzzword_ids);
+            const buzzwords = await Buzzword.findAll({ where: { id: ids } });
+            return res.json(buzzwords);
+        }
+
+        // Get buzzword IDs used in the last 15 days
+        const recent = await sequelize.query(
+            'SELECT buzzword_ids FROM daily_buzzwords ORDER BY date DESC LIMIT 15',
+            { type: sequelize.QueryTypes.SELECT }
+        );
+
+        const recentlyUsedIds = new Set();
+        recent.forEach(entry => {
+            const ids = JSON.parse(entry.buzzword_ids);
+            ids.forEach(id => recentlyUsedIds.add(id));
+        });
+
+        // Fetch all buzzwords and exclude recent ones
+        const allBuzzwords = await Buzzword.findAll();
+        const available = allBuzzwords.filter(bw => !recentlyUsedIds.has(bw.id));
+
+        // Randomly pick 5 buzzwords
+        const shuffled = available.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 5);
+
+        const selectedIds = selected.map(b => b.id);
+        await sequelize.query(
+            'INSERT INTO daily_buzzwords (date, buzzword_ids) VALUES (?, ?)',
+            {
+                replacements: [today, JSON.stringify(selectedIds)],
+                type: sequelize.QueryTypes.INSERT,
+            }
+        );
+
+        res.json(selected);
+    } catch (error) {
+        console.error('getDailyBuzzwords error:', error);
+>>>>>>> Upadted_calander_11_04_2025
         res.status(500).json({ error: 'Could not fetch buzzwords' });
     }
 };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Upadted_calander_11_04_2025
 exports.searchBuzzwords = async (req, res) => {
     const query = req.query.q;
 
@@ -55,7 +129,11 @@ exports.submitUserSentence = async (req, res) => {
 
     try {
         const result = await UserSentence.create({ term_id, user_sentence });
+<<<<<<< HEAD
         console.log(result);
+=======
+        // console.log(result);
+>>>>>>> Upadted_calander_11_04_2025
         res.status(201).json({ message: 'Submitted!', id: result.id });
     } catch (error) {
         res.status(500).json({ error: 'Submit failed' });
@@ -77,3 +155,36 @@ exports.getUserSentencesByTerm = async (req, res) => {
         res.status(500).json({ error: 'Could not fetch user sentences' });
     }
 };
+<<<<<<< HEAD
+=======
+
+exports.getAllUserSubmissions = async (req, res) => {
+    const { date } = req.query;
+
+    let whereClause = {};
+    if (date) {
+        whereClause = sequelize.where(
+            sequelize.fn('DATE', sequelize.col('created_at')),
+            date
+        );
+    }
+
+    try {
+        const sentences = await UserSentence.findAll({
+            where: whereClause,
+            order: [['created_at', 'DESC']],
+            include: [{ model: Buzzword }],
+        });
+        console.log(sentences);
+
+        res.json(sentences);
+    } catch (error) {
+        console.log(error);
+
+        console.error('Error fetching all user sentences:', error);
+        res.status(500).json({ error: 'Could not fetch data' });
+    }
+};
+
+
+>>>>>>> Upadted_calander_11_04_2025
