@@ -9,7 +9,12 @@ const UserSentence = sequelize.define('UserSentence', {
     user_sentence: {
         type: DataTypes.TEXT,
         allowNull: false,
-    }
+    },
+    rating: {
+        type: DataTypes.INTEGER, // ← new rating field
+        allowNull: true,
+    },
+
 }, {
     tableName: 'user_sentences',
     timestamps: true,

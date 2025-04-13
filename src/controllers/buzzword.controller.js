@@ -1,22 +1,8 @@
 const { Buzzword, UserSentence, sequelize } = require('../models');
 const { Op } = require('sequelize');
-
-
-exports.getDailyBuzzwords = async (req, res) => {
-    try {
-        const buzzwords = await Buzzword.findAll({
-            order: sequelize.random(),
-            limit: 5,
-            raw: true
-        });
-        console.log(buzzwords);
-
-        res.json(buzzwords);
-    } catch (error) {
-        console.error(error);
-    }
-}
 require('dotenv').config()
+const { getSentenceFeedback } = require('../services/aiFeedback');
+
 // const OpenAI = require('openai');
 
 // const openai = new OpenAI({
@@ -34,9 +20,17 @@ const cohere = new CohereClient({
 
 exports.getDailyBuzzwords = async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
+    //cheat api
+    // const today = "2025-04-14"
+    // const today = req.query.date || new Date().toISOString().split('T')[0];
+
 
     try {
-        // Check if today's buzzwords are already saved
+        //  testing by one word 
+        // await sequelize.query("DELETE FROM daily_buzzwords WHERE date = ?", {
+        //     replacements: [today],
+        // });
+        // // // Check if today's buzzwords are already saved
         const [existing] = await sequelize.query(
             'SELECT * FROM daily_buzzwords WHERE date = ?',
             {
@@ -91,6 +85,7 @@ exports.getDailyBuzzwords = async (req, res) => {
 
 
 
+
 exports.searchBuzzwords = async (req, res) => {
     const query = req.query.q;
 
@@ -121,22 +116,22 @@ exports.searchBuzzwords = async (req, res) => {
     }
 };
 
-exports.submitUserSentence = async (req, res) => {
-    const { term_id, user_sentence } = req.body;
-    if (!term_id || !user_sentence) {
-        return res.status(400).json({ error: 'term_id and sentence required' });
-    }
+// exports.submitUserSentence = async (req, res) => {
+//     const { term_id, user_sentence } = req.body;
+//     if (!term_id || !user_sentence) {
+//         return res.status(400).json({ error: 'term_id and sentence required' });
+//     }
 
-    try {
-        const result = await UserSentence.create({ term_id, user_sentence });
+//     try {
+//         const result = await UserSentence.create({ term_id, user_sentence });
 
-        console.log(result);
+//         console.log(result);
 
-        res.status(201).json({ message: 'Submitted!', id: result.id });
-    } catch (error) {
-        res.status(500).json({ error: 'Submit failed' });
-    }
-};
+//         res.status(201).json({ message: 'Submitted!', id: result.id });
+//     } catch (error) {
+//         res.status(500).json({ error: 'Submit failed' });
+//     }
+// };
 
 exports.getUserSentencesByTerm = async (req, res) => {
     const { id } = req.params;
@@ -183,5 +178,43 @@ exports.getAllUserSubmissions = async (req, res) => {
     }
 };
 
+
+exports.submitUserSentence = async (req, res) => {
+    const { term_id, user_sentence } = req.body;
+
+    if (!term_id || !user_sentence) {
+        return res.status(400).json({ error: 'term_id and sentence required' });
+    }
+
+    try {
+        const buzzword = await Buzzword.findByPk(term_id);
+        const feedback = await getSentenceFeedback({
+            buzzword: buzzword.term,
+            sentence: user_sentence,
+        });
+
+        // const result = await UserSentence.create({ term_id, user_sentence });
+
+        const ratingMatch = feedback.match(/Rating:\s*(\d)/);
+        const rating = ratingMatch ? parseInt(ratingMatch[1]) : null;
+
+        const result = await UserSentence.create({
+            term_id,
+            user_sentence,
+            rating,
+        });
+
+
+        res.status(201).json({
+            message: 'Submitted!',
+            id: result.id,
+            feedback,
+            rating,
+        });
+    } catch (err) {
+        console.error('Submission error:', err);
+        res.status(500).json({ error: 'Submit failed' });
+    }
+};
 
 
