@@ -1,6 +1,6 @@
 const { Buzzword, UserSentence, sequelize } = require('../models');
 const { Op } = require('sequelize');
-<<<<<<< HEAD
+
 
 exports.getDailyBuzzwords = async (req, res) => {
     try {
@@ -14,7 +14,8 @@ exports.getDailyBuzzwords = async (req, res) => {
         res.json(buzzwords);
     } catch (error) {
         console.error(error);
-=======
+    }
+}
 require('dotenv').config()
 // const OpenAI = require('openai');
 
@@ -82,15 +83,14 @@ exports.getDailyBuzzwords = async (req, res) => {
         res.json(selected);
     } catch (error) {
         console.error('getDailyBuzzwords error:', error);
->>>>>>> Upadted_calander_11_04_2025
+
         res.status(500).json({ error: 'Could not fetch buzzwords' });
     }
 };
 
-<<<<<<< HEAD
-=======
 
->>>>>>> Upadted_calander_11_04_2025
+
+
 exports.searchBuzzwords = async (req, res) => {
     const query = req.query.q;
 
@@ -129,11 +129,9 @@ exports.submitUserSentence = async (req, res) => {
 
     try {
         const result = await UserSentence.create({ term_id, user_sentence });
-<<<<<<< HEAD
+
         console.log(result);
-=======
-        // console.log(result);
->>>>>>> Upadted_calander_11_04_2025
+
         res.status(201).json({ message: 'Submitted!', id: result.id });
     } catch (error) {
         res.status(500).json({ error: 'Submit failed' });
@@ -155,8 +153,7 @@ exports.getUserSentencesByTerm = async (req, res) => {
         res.status(500).json({ error: 'Could not fetch user sentences' });
     }
 };
-<<<<<<< HEAD
-=======
+
 
 exports.getAllUserSubmissions = async (req, res) => {
     const { date } = req.query;
@@ -187,4 +184,4 @@ exports.getAllUserSubmissions = async (req, res) => {
 };
 
 
->>>>>>> Upadted_calander_11_04_2025
+
